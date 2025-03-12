@@ -1,16 +1,35 @@
-# This is a sample Python script.
+from typing import Annotated
+from uuid import UUID
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from fastapi import Body, FastAPI
+
+from dotenv import load_dotenv
+import os
+
+from pydantic import BaseModel, AfterValidator, IPvAnyAddress
+
+from validate.request_response_models import CreateLoanBid
+
+app = FastAPI()
+
+load_dotenv()
+
+api_url = os.getenv("API_URL") 
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+@app.get(api_url)
+async def main() -> dict:
+    
+    return {"message": api_url}
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+@app.post(api_url + "/loan/apply")
+async def create_loan(create_loan_bid: CreateLoanBid) -> CreateLoanBid:
+    return create_loan_bid
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+@app.get(api_url + "/loan/status/{loan_id}")
+async def get_loan_status(
+    loan_id: UUID
+) -> dict:
+    return {}
