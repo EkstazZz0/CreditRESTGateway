@@ -6,6 +6,9 @@ from datetime import datetime
 from enum import Enum
 
 
+AmountMoney = condecimal(max_digits=10, decimal_places=2)
+
+
 class LoanStatus(str, Enum):
     pending = "pending"
     in_review = "in_review"
@@ -22,13 +25,10 @@ class FraudStatus(str, Enum):
     manual = "manual_review"
 
 
-class Progress(LoanStatus, FraudStatus):
-    scoring_status = LoanStatus
-    document_status = LoanStatus
-    fraud_status = FraudStatus
-
-
-AmountMoney = condecimal(max_digits=10, decimal_places=2)
+class Progress(BaseModel):
+    scoring_status: LoanStatus
+    document_status: LoanStatus
+    fraud_status: FraudStatus
 
 
 class CreateLoanBid(BaseModel):
@@ -59,7 +59,7 @@ class CreateLoanBid(BaseModel):
 class CreateLoanResponse(BaseModel):
     loan_id: Annotated[UUID, 
                         Field(description="Unique identifier of loan bid")]
-    amount: Annotated[AmountMoney, # type: ignore
+    loan_amount: Annotated[AmountMoney, # type: ignore
                       Field(description="amount of money for loan")]
     term_months: Annotated[int, 
                            Field(description="quantity of months of period")]

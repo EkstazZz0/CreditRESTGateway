@@ -1,5 +1,5 @@
 from typing import Annotated
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import Body, FastAPI
 
@@ -8,7 +8,7 @@ import os
 
 from pydantic import BaseModel, AfterValidator, IPvAnyAddress
 
-from validate.request_response_models import CreateLoanBid
+from validate.request_response_models import CreateLoanBid, Progress, LoanStatus, FraudStatus
 
 app = FastAPI()
 
@@ -24,8 +24,12 @@ async def main() -> dict:
 
 
 @app.post(api_url + "/loan/apply")
-async def create_loan(create_loan_bid: CreateLoanBid) -> CreateLoanBid:
-    return create_loan_bid
+async def create_loan(create_loan_bid: CreateLoanBid) -> Progress:
+    loan_id = uuid4()
+
+    return Progress(scoring_status=LoanStatus.ready_for_decision, 
+                    document_status=LoanStatus.in_review, 
+                    fraud_status=FraudStatus.pending)
 
 
 @app.get(api_url + "/loan/status/{loan_id}")
