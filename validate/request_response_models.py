@@ -1,9 +1,11 @@
-from pydantic import BaseModel, Field, AfterValidator, IPvAnyAddress, condecimal
+from pydantic import BaseModel, AfterValidator, IPvAnyAddress, condecimal
 from typing import Annotated
 from uuid import UUID
 from validate.functions import check_passport
 from datetime import datetime
 from enum import Enum
+
+from sqlmodel import SQLModel, create_engine, Field, Session, select
 
 
 AmountMoney = condecimal(max_digits=10, decimal_places=2)
@@ -25,7 +27,7 @@ class FraudStatus(str, Enum):
     manual = "manual_review"
 
 
-class Progress(BaseModel):
+class Progress(SQLModel):
     scoring_status: LoanStatus
     document_status: LoanStatus
     fraud_status: FraudStatus
@@ -71,3 +73,29 @@ class CreateLoanResponse(BaseModel):
                           Field(description="")]
     updated_at: Annotated[datetime,
                           Field(description="")]
+
+
+class LoanBidBase(SQLModel):
+    user_id: UUID
+    loan_amount: AmountMoney #type: ignore
+    term_months: Annotated[int, Field(ge=1)]
+    passport: Annotated[str, 
+                        Field(title="Passport number and series",
+                              description="Enter series and then number of passport as a single line without spaces",
+                              max_length=10, 
+                              min_length=10, 
+                              examples=["5741002204", "3068479533"]), 
+                        AfterValidator(check_passport)]
+    income: float
+    ip_address: IPvAnyAddress | None = Field(default=None, 
+                                             title="IP address, optional parameter", 
+                                             description="Enter IPv4 or IPv6 address or just don't add this parameter",
+                                             examples=["210.67.44.36", "424e:37ae:2c3b:7d60:6d25:8861:dec0:0c40"])
+
+
+class LoanBid(LoanBidBase, table=True):
+    loan_id: UUID = Field(primary_key=True)
+
+
+class LoanBidCreate(LoanBidBase):
+    pass
